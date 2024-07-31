@@ -7,8 +7,11 @@ NodeMCU-32ES-ESP32 Development board(x1)
 PCA9685- 16 channel 12-Bit PWM Servo Motor Driver I2C Module ( Compatible with esp32 as slave)(x1)
 
 MG995 Servo motor (x3)
+
 Jumper Wires
+
 6V 2A Power Supply
+
 
 We are using the NodeMCU-32ES-ESP32 Development board as the thinker board for thus project.
 MG995 Servo motor (x3) are used for the rotation of the arm.
