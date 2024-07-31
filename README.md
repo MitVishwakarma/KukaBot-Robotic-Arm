@@ -2,8 +2,8 @@ In this project we make a robotic arm with 5 degrees of freedom based on inverse
 The first thing that comes to mind are the brilliant yellow KUKA BOT arms we see in industrial usage. We draw inspiration from this bot. Self explanatory that our project can also be modified for the same purpose if replaced with heavy motors and subsequent tuning in the code.
 Parts used in the project:
 
-NodeMCU-32ES-ESP32 Development board(x1)
 ![download](https://github.com/user-attachments/assets/0e720e6f-1360-41a0-b0bd-c34e3b8797d7)
+NodeMCU-32ES-ESP32 Development board(x1)
 
 
 PCA9685- 16 channel 12-Bit PWM Servo Motor Driver I2C Module ( Compatible with esp32 as slave)(x1)
