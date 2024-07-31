@@ -3,7 +3,9 @@ The first thing that comes to mind are the brilliant yellow KUKA BOT arms we see
 Parts used in the project:
 
 NodeMCU-32ES-ESP32 Development board(x1)
+
 PCA9685- 16 channel 12-Bit PWM Servo Motor Driver I2C Module ( Compatible with esp32 as slave)(x1)
+
 MG995 Servo motor (x3)
 Jumper Wires
 6V 2A Power Supply
