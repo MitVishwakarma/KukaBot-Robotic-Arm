@@ -12,8 +12,12 @@ PCA9685- 16 channel 12-Bit PWM Servo Motor Driver I2C Module ( Compatible with e
 
 
 MG995 Servo motor (x3)
+![image](https://github.com/user-attachments/assets/6d042a5f-e01e-4565-918e-3c97fefef57b)
+
 
 Jumper Wires
+![image](https://github.com/user-attachments/assets/62165969-d499-4239-8e9b-9dee2438bdd4)
+
 
 6V 2A Power Supply
 
