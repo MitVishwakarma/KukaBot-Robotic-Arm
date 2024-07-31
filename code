@@ -1,1 +1,161 @@
+#include <Wire.h>
+#include <Adafruit_PWMServoDriver.h>
+#include <math.h>
 
+// Create the PCA9685 object
+Adafruit_PWMServoDriver pwm = Adafruit_PWMServoDriver();
+
+// Define the length of each segment of the robotic arm (in cm)
+const float L1 = 3.0; // Base to shoulder
+const float L2 = 9.50; // Shoulder to elbow
+const float L3 = 10.0; // Elbow to end effector
+
+// Define the base radius
+const float BASE_RADIUS = 5; // Radius of the base
+
+// Define minimum height for the end effector (in cm)
+const float MIN_Z_HEIGHT = 2.0;
+
+// Define the servo pulse range
+#define SERVOMIN  150
+#define SERVOMAX  600
+
+// Define the time it takes to move from one position to another (in milliseconds)
+#define MOVE_TIME 2000  // 2 seconds
+
+// Servo channels on the PCA9685
+#define BASE_SERVO_CHANNEL 0
+#define SHOULDER_SERVO_CHANNEL 1
+#define ELBOW_SERVO_CHANNEL 2
+
+// Current angles for the servos (starting at 0 degrees)
+float currentTheta1 = 0.0;
+float currentTheta2 = 0.0;
+float currentTheta3 = 0.0;
+
+void setup() {
+  Serial.begin(115200);
+  pwm.begin();
+  pwm.setPWMFreq(60);  // Analog servos run at ~60 Hz updates
+  delay(10);
+  
+  // Initialize servos to 0 degrees
+  moveServos(0.0, 0.0, 0.0);
+}
+
+void loop() {
+  // Desired position of the end effector
+  float x = 10.0;    // Set the x-coordinate
+  float y = 10.0;    // Set the y-coordinate
+  float z = 5.0;    // Set the z-coordinate
+
+  // Ensure the target position does not collide with the base or go below minimum height
+  if (sqrt(x * x + y * y) < BASE_RADIUS) {
+    Serial.println("Target position is too close to the base!");
+    return;
+  }
+
+  if (z < MIN_Z_HEIGHT) {
+    Serial.println("Target position is below the minimum height!");
+    return;
+  }
+
+  float targetTheta1, targetTheta2, targetTheta3;
+
+  // Calculate inverse kinematics
+  if (calculateInverseKinematics(x, y, z, targetTheta1, targetTheta2, targetTheta3)) {
+    // Move servos to the calculated positions slowly
+    moveServosSlowly(targetTheta1, targetTheta2, targetTheta3, MOVE_TIME);
+
+    Serial.print("Moving to angles: ");
+    Serial.print(targetTheta1);
+    Serial.print(", ");
+    Serial.print(targetTheta2);
+    Serial.print(", ");
+    Serial.println(targetTheta3);
+  } else {
+    Serial.println("IK solution not found!");
+  }
+
+  delay(1000);  // Wait for 1 second before repeating
+}
+
+void moveServosSlowly(float targetTheta1, float targetTheta2, float targetTheta3, unsigned long moveTime) {
+  unsigned long startTime = millis();
+  unsigned long elapsedTime = 0;
+
+  float startTheta1 = currentTheta1;
+  float startTheta2 = currentTheta2;
+  float startTheta3 = currentTheta3;
+
+  while (elapsedTime < moveTime) {
+    elapsedTime = millis() - startTime;
+    float fraction = (float)elapsedTime / moveTime;
+
+    // Interpolate the angles
+    float theta1 = startTheta1 + (targetTheta1 - startTheta1) * fraction;
+    float theta2 = startTheta2 + (targetTheta2 - startTheta2) * fraction;
+    float theta3 = startTheta3 + (targetTheta3 - startTheta3) * fraction;
+
+    // Move servos to the interpolated angles
+    moveServos(theta1, theta2, theta3);
+
+    delay(20);  // Small delay to ensure smooth movement
+  }
+
+  // Ensure the final position is set exactly
+  moveServos(targetTheta1, targetTheta2, targetTheta3);
+
+  // Update the current angles
+  currentTheta1 = targetTheta1;
+  currentTheta2 = targetTheta2;
+  currentTheta3 = targetTheta3;
+}
+
+void moveServos(float theta1, float theta2, float theta3) {
+  int pulse1 = map(theta1, -90, 90, SERVOMIN, SERVOMAX); // Map -90 to 90 degrees to servo pulse range
+  int pulse2 = map(theta2, 0, 180, SERVOMIN, SERVOMAX);
+  int pulse3 = map(180 - theta3, 0, 180, SERVOMIN, SERVOMAX); // Reversing elbow servo direction
+
+  pwm.setPWM(BASE_SERVO_CHANNEL, 0, pulse1);
+  pwm.setPWM(SHOULDER_SERVO_CHANNEL, 0, pulse2);
+  pwm.setPWM(ELBOW_SERVO_CHANNEL, 0, pulse3);
+}
+
+bool calculateInverseKinematics(float x, float y, float z, float &theta1, float &theta2, float &theta3) {
+  // Calculate θ1 from the base rotation
+  float wx = sqrt(x * x + y * y);
+  
+  // Ensure that the base servo angle does not exceed its 180-degree limit
+  if (wx > L2 + L3) {
+    Serial.println("Target position is out of reach!");
+    return false;
+  }
+
+  theta1 = atan2(y, x) * 180 / PI;
+  
+  // Ensure θ1 is within the servo's 180-degree range
+  if (theta1 < -90) theta1 = -90;
+  if (theta1 > 90) theta1 = 90;
+
+  // Wrist center position (wx, wy, wz)
+  float wz = z - L1;
+
+  // Calculate θ3 using geometric approach
+  float D = (wx * wx + wz * wz - L2 * L2 - L3 * L3) / (2 * L2 * L3);
+
+  if (D < -1 || D > 1) {
+    return false; // No solution
+  }
+
+  theta3 = atan2(sqrt(1 - D * D), D) * 180 / PI;
+  theta2 = (atan2(wz, wx) - atan2(L3 * sin(theta3 * PI / 180), L2 + L3 * cos(theta3 * PI / 180))) * 180 / PI;
+
+  // Ensure θ2 and θ3 are within the servo's 180-degree range
+  if (theta2 < 0) theta2 = 0;
+  if (theta2 > 180) theta2 = 180;
+  if (theta3 < 0) theta3 = 0;
+  if (theta3 > 180) theta3 = 180;
+
+  return true;
+}
