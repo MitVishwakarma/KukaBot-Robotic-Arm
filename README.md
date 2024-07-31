@@ -16,7 +16,6 @@ MG995 Servo motor (x3)
 
 
 Jumper Wires
-![image](https://github.com/user-attachments/assets/62165969-d499-4239-8e9b-9dee2438bdd4)
 
 
 6V 2A Power Supply
