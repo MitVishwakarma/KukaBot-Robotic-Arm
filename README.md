@@ -3,7 +3,8 @@ The first thing that comes to mind are the brilliant yellow KUKA BOT arms we see
 Parts used in the project:
 
 NodeMCU-32ES-ESP32 Development board(x1)
-![download](https://github.com/user-attachments/assets/0e720e6f-1360-41a0-b0bd-c34e3b8797d7)
+![image](https://github.com/user-attachments/assets/5e364cc0-92a3-4b38-b957-13d8ae7f0497)
+
 
 
 PCA9685- 16 channel 12-Bit PWM Servo Motor Driver I2C Module ( Compatible with esp32 as slave)(x1)
